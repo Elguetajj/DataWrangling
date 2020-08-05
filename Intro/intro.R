@@ -171,3 +171,31 @@ df_copy <-  data.frame(
 
 df_copy[!is.na(df_copy$col2),]
 
+
+#my functions
+
+generate_df <- function(x){
+  
+  df <- data.frame(
+    a = sample(letters, size = 10, replace = TRUE),
+    b = sample(1:10, size = 10, replace = TRUE),
+    c = sample(1:10, size = 10, replace = TRUE)
+    )
+  return(df)
+  
+}
+
+df_1 <- generate_df(1000)
+
+
+apply(df_1[,2:3], MARGIN = 1, FUN = mean)
+
+
+l <- lapply(1:10, generate_df)
+
+
+
+
+
+
+
