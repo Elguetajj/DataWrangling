@@ -6,19 +6,34 @@ library(tidyverse)
 library(readr)
 library(readxl)
 
-
-
-excel <- read_excel('./data/01-2018.xlsx')
-str(excel)
-
-excel2 <- read_excel('./data/02-2018.xlsx')
-str(excel2)
-
-
-
+#problema 1
+setwd("./data")
 files <- list.files(path = '.', pattern ="*.xlsx", full.names = FALSE)
 
 table <- sapply(files, read_excel, simplify=FALSE) %>%
-  bind_rows(.id = "id")
+  bind_rows(.id = "DATE")
+
+table$DATE <- gsub('.xlsx','',table$DATE)
+
+
+#problema 2
+#utility function for sampling
+list_sample <- function(x){
+  return(sample(1:30 ,size = 100, replace = TRUE))
+}
+
+#function to get the mode of a vector
+mode <- function(x){
+  uniqx <- unique(x)
+  uniqx[which.max(tabulate(match(x,uniqx)))]
+}
+
+
+lista <- list(a = list_sample(), b = list_sample(), c = list_sample())
+modes <- lapply(lista, mode)
+
+
+#problema 3 
+
 
 
