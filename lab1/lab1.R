@@ -34,6 +34,6 @@ modes <- lapply(lista, mode)
 
 
 #problema 3 
-
-
+parque_vihicular <- read_delim("INE_PARQUE_VEHICULAR_080219.txt", delim = '|')
+str(parque_vihicular)
 

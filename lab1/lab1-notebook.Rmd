@@ -1,0 +1,104 @@
+---
+title: "R Notebook"
+output: rmarkdown::github_document
+
+---
+
+# Laboratorio #1
+
+## Problema #1
+
+### Escenario:
+Ha sido contratado para trabajar en una consultoría a una embotelladora nacional. La
+embotelladora se encarga de distribuir su producto a distintos clientes, utilizando diferentes
+equipos de transporte y pilotos.
+Se le ha enviado un set de archivos de las entregas del año 2018.
+
+### Se Requiere:
+- Unificar todos los archivos en una tabla única.
+- Agregar una columna adicional que identifique al mes y año de ese archivo, por
+ejemplo: Fecha: 01-2018.
+- Exportar ese archivo en formato csv o Excel.
+- Adjuntar el link de su Git Rmarkdown de R con lo que realizó lo anterior.
+- Adjuntar archivo csv o Excel unificado que genera el archivo de R.
+
+### Nota:
+- Las variables que el archivo necesita tener son: COD_VIAJE, CLIENTE, UBICACIÓN,
+CANTIDAD, PILOTO, Q, CREDITO, UNIDAD, Fecha
+
+
+### Solución:
+```{r set-up, include=FALSE}
+if(!require("tidyverse")) install.packages("tidyverse")
+if(!require("readr")) install.packages("readr")
+if(!require("readxl")) install.packages("readxl")
+if(!require("rmarkdown")) install.packages("rmarkdown")
+
+library(rmarkdown)
+library(tidyverse)
+library(readr)
+library(readxl)
+
+#problema 1
+```
+
+```{r}
+setwd("./data")
+
+files <- list.files(path = '.', pattern ="*.xlsx", full.names = FALSE)
+
+table <- sapply(files, read_excel, simplify=FALSE) %>%
+  bind_rows(.id = "DATE")
+
+table$DATE <- gsub('.xlsx','',table$DATE)
+```
+```{r}
+table
+```
+
+
+## Problema 2 
+Utilizando la función lapply, encuentre la moda de cada vector de una lista de por lo menos 3
+vectores.
+
+### Solución:
+```{r}
+#utility function for sampling
+list_sample <- function(x){
+  return(sample(1:30 ,size = 100, replace = TRUE))
+}
+
+#function to get the mode of a vector
+mode <- function(x){
+  uniqx <- unique(x)
+  uniqx[which.max(tabulate(match(x,uniqx)))]
+}
+```
+```{r}
+lista <- list(a = list_sample(), b = list_sample(), c = list_sample())
+modes <- lapply(lista, mode)
+
+lista
+modes
+```
+
+## Problema 3 
+
+- Descargue de la página web de la SAT el aechivo de Parque Vehicular de Enero 2019.
+- Leer el archivo en R. (Nota: usar read_delim() del paquete readr)
+
+
+### Solución:
+```{r}
+setwd("./data")
+
+parque_vihicular <- read_delim("INE_PARQUE_VEHICULAR_080219.txt", delim = '|')
+
+parque_vehicular
+```
+
+
+
+
+
+
