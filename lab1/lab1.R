@@ -33,7 +33,9 @@ lista <- list(a = list_sample(), b = list_sample(), c = list_sample())
 modes <- lapply(lista, mode)
 
 
-#problema 3 
+#problema 3
+setwd("./data")
+
 parque_vihicular <- read_delim("INE_PARQUE_VEHICULAR_080219.txt", delim = '|')
 str(parque_vihicular)
 

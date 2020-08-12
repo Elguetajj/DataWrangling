@@ -51,10 +51,10 @@ table <- sapply(files, read_excel, simplify=FALSE) %>%
   bind_rows(.id = "DATE")
 
 table$DATE <- gsub('.xlsx','',table$DATE)
-```
-```{r}
+
 table
 ```
+
 
 
 ## Problema 2 
