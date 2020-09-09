@@ -87,8 +87,8 @@ B. Estrategia de negocio ha decidido que ya no operará en aquellos territorios 
 
 3. Utilizamos las funciones de la familia apply para aprovechar las funcionalidades vectoriales de r y de esta manera poder transformar, manipular y analizar la data de forma eficiente.
 5. `readr::read_delim("file_path", ":")`
-7. No se puede. Tiene que agregar la categoria al factor. 
-8, 
+7. Se tiene que agregar a los niveles con `levels(x) <- c(levels(x), "nueva_categoria")` 
+8, NA por que es un valor no disponible, los niveles describen todos los posibles valores del factor, si el elemento que queremos agrefar ahi no esta definido por los niveles entonces no es un valor disponible para el factor. 
 10. SELECT * FROM A RIGHT JOIN B ON A.KEY = B.KEY WHERE A.key = NULL
 
 extra: 
