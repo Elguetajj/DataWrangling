@@ -117,7 +117,8 @@ x <- parcial_anonimo %>%
   group_by(Cliente,Pais) %>%
   summarise(EficienciaPromedio = mean(Venta/`Unidades plaza`, na.rm=TRUE) )
 
-x
+x %>% 
+  head(10)
   
 
 
@@ -138,7 +139,7 @@ y <- parcial_anonimo %>%
   filter(Venta<0) %>% 
    arrange(desc(Venta))
 
-media <- mean(x$Venta)
+media <- mean(y$Venta)
 
 y %>% 
   filter(Venta<media)
