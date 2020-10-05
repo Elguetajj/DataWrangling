@@ -1,0 +1,118 @@
+---
+title: "Lab4"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+--- 
+
+
+```{r}
+if(!require("flexdashboard")) install.packages("flexdashboard")
+if(!require("tidyverse")) install.packages("tidyverse")
+if(!require("readxl")) install.packages("readxl")
+if(!require("DT")) install.packages("DT")
+if(!require("readr")) install.packages("readr")
+
+
+library(flexdashboard)
+library(dplyr)
+library(tidyverse)
+library(readxl)
+library(DT)
+library(readr)
+
+
+```
+
+
+
+```{r}
+tabla <- readr::read_csv("./tabla_completa.csv")
+tabla <- subset(tabla, select = -c(X1))
+tabla <- as.data.frame(lapply(tabla, function(y) gsub('[^[[:alnum:]|[:blank:]|.]', '', y)))
+tabla <- tabla %>% 
+  transform(Q = as.numeric(Q),
+            CANTIDAD = as.numeric(CANTIDAD))
+```
+
+# data
+
+##
+###
+```{r datatable}
+DT::datatable(tabla)
+```
+
+##
+###
+
+
+
+
+#### Faltantes por tamaño
+
+```{r}
+faltantes <- tabla %>% 
+  filter( grepl('FALTANTE|Faltante',CLIENTE)) %>% 
+    group_by(UNIDAD) %>% 
+      summarise(n = n())
+    
+  
+knitr::kable(faltantes)
+```
+
+#### total por tamaño
+
+```{r}
+total <- tabla %>% 
+  group_by(UNIDAD) %>% 
+    summarise(n = n())
+  
+knitr::kable(total)
+
+```
+
+#### faltantes %
+
+```{r}
+x <- faltantes$n/total$n
+x
+
+```
+
+
+
+
+###
+```{r}
+cantidades <- tabla %>% 
+  group_by(UNIDAD) %>% 
+  summarize(
+    n = n(),
+    mean_Q= mean(Q),
+    min_Q = min(Q),
+    max_Q = max(Q), 
+    mean_CANTIDAD= mean(CANTIDAD),
+    min_CANTIDAD = min(CANTIDAD),
+    max_CANTIDAD = max(CANTIDAD)
+    )
+
+knitr::kable(cantidades)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

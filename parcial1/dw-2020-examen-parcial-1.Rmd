@@ -115,7 +115,9 @@ parcial_anonimo <- readRDS("./parcial_anonimo.rds")
 x <- parcial_anonimo %>% 
   filter(Venta>0) %>% 
   group_by(Cliente,Pais) %>%
-  summarise(EficienciaPromedio = mean(Venta/`Unidades plaza`, na.rm=TRUE) )
+  summarise(EficienciaPromedio = mean(Venta/`Unidades plaza`, na.rm=TRUE) ) %>% 
+  arrange(desc(EficienciaPromedio))
+
 
 x %>% 
   head(10)
