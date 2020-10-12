@@ -1,0 +1,364 @@
+---
+title: "Energia Privada S.A  ⚡"
+output: 
+  flexdashboard::flex_dashboard:
+    theme: cosmo
+    orientation: rows
+    vertical_layout: fill
+--- 
+
+
+```{r}
+if(!require("flexdashboard")) install.packages("flexdashboard")
+if(!require("tidyverse")) install.packages("tidyverse")
+if(!require("readr")) install.packages("readr")
+if(!require("DT")) install.packages("DT")
+if(!require("humanize")) install.packages("humanize")
+if(!require("hrbrthemes")) install.packages("hrbrthemes")
+
+library(flexdashboard)
+library(tidyverse)
+library(readr)
+library(DT)
+library(humanize)
+library(scales)
+
+```
+
+
+```{r importacion y limpieza de datos, include=FALSE}
+#importa dataset
+csv <- read_csv(file = "c1.csv")[,1:22]
+
+
+#limpieza
+data <- csv %>% 
+  pivot_longer(cols = c(`5-30`,`30-45`,`45-75`,`75-120`,`120+`) , names_to = "rango", values_to = "equis", values_drop_na = T)
+
+data<- data %>% 
+  rename_at(names(data),
+            .funs = tolower)
+
+data <- data %>%
+  mutate_all(funs(str_replace(., "Q", "")))
+
+data <- data %>% 
+  transform(lat = as.numeric(lat),
+            long = as.numeric(long),
+            factura = as.numeric(factura),
+            camion_5 = as.numeric(camion_5),
+            pickup = as.numeric(pickup),
+            moto = as.numeric(moto),
+            directocamion_5 = as.numeric(directocamion_5),
+            directopickup = as.numeric(directopickup),
+            directomoto = as.numeric(directomoto),
+            fijocamion_5 = as.numeric(fijocamion_5),
+            fijopickup = as.numeric(fijopickup),
+            fijomoto = as.numeric(fijomoto))
+
+data <- data %>% 
+  pivot_longer(c(camion_5, pickup, moto), names_to = "tipo", values_to = "costo_total", values_drop_na = T) %>% 
+  pivot_longer(cols = contains("directo"), names_to = "tipo_directo" ,values_to = "costo_directo", values_drop_na = T)%>% 
+  pivot_longer(cols = contains("fijo"),names_to = "tipo_fijo", values_to = "costo_fijo", values_drop_na = T) 
+
+data <- data %>% 
+  subset(select = -c(tipo_directo, tipo_fijo, equis))
+```
+
+
+
+# Estado de resultados
+
+
+
+```{r include=FALSE}
+#estado de resultados
+costos <- sum(data$costo_total)
+revenue <- sum(data$factura)
+profit <- (revenue - costos)
+
+detalle <- data %>% 
+  group_by(cod) %>% 
+  summarize(
+    cuenta = n(),
+    factura_promedio = mean(factura),
+    costo_promedio = mean(costo_total),
+    costo_fijo_promedio = mean(costo_fijo),
+    costo_directo_promedio = mean(costo_directo),
+    margen_promedio = mean(factura-costo_total),
+    porcentaje_revenue = sum(factura)/revenue,
+    porcentaje_profits = sum(factura-costo_total)/profit,
+    porcentaje_costos = sum(costo_total)/costos
+  )
+
+```
+
+
+## 
+
+<h1>Estado de resultados</h1>
+
+##
+
+
+### Profit
+
+```{r}
+valueBox(count_as_word(trunc(profit)),
+         caption = "Ganancias",
+         icon = "fa-chart-line",
+         color = "success")
+```
+
+### Revenue
+
+```{r}
+valueBox(count_as_word(trunc(revenue)), 
+         caption = "Ingresos",
+         icon = "fa-money-bill-wave-alt")
+```
+
+
+### Costs
+
+```{r}
+valueBox(count_as_word(trunc(costos)), 
+         caption = "Costos",
+         icon = "fa-dollar-sign",
+         color = "warning")
+```
+
+
+
+##
+
+###
+
+```{r}
+profit_margin <- profit/revenue
+valueBox(percent(profit_margin), 
+         caption = "Margen",
+         icon = "fa-search-dollar",
+         color = "purple")
+```
+
+
+
+# Tarifario
+
+## 
+
+### 
+
+<h1>Tarifario</h1>
+
+```{r}
+
+detalle <- detalle[order(-detalle$factura_promedio),]
+
+DT::datatable(detalle[,1:7])
+
+```
+
+##
+
+###
+
+
+```{r include=FALSE}
+library(forcats)
+
+# Reorder following the value of another column:
+factura_promedio<- detalle %>%
+  mutate(name = fct_reorder(cod, factura_promedio)) %>%
+  ggplot( aes(x=cod, y=factura_promedio)) +
+    geom_bar(stat="identity", fill="#f68060", alpha=.6, width=.4) +
+    coord_flip() +
+    xlab("") +
+    theme_bw()
+    labs(fill="")
+    
+# Reorder following the value of another column:
+margen_promedio<-detalle %>%
+  mutate(name = fct_reorder(cod, margen_promedio)) %>%
+  ggplot( aes(x=cod, y=margen_promedio)) +
+    geom_bar(stat="identity", fill="#f68060", alpha=.6, width=.4) +
+    coord_flip() +
+    xlab("") +
+    theme_bw()
+    labs(fill="")
+    
+costo_promedio<-detalle %>%
+  mutate(name = fct_reorder(cod, costo_promedio)) %>%
+  ggplot( aes(x=cod, y=costo_promedio)) +
+    geom_bar(stat="identity", fill="#f68060", alpha=.6, width=.4) +
+    coord_flip() +
+    xlab("") +
+    theme_bw()
+    labs(fill="")
+
+```
+
+```{r}
+factura_promedio
+```
+
+
+
+###
+
+
+```{r}
+
+margen_promedio
+```
+
+
+
+
+
+###
+
+
+```{r}
+
+costo_promedio
+
+```
+
+
+
+# Tarifas por Cliente
+
+##
+
+###
+
+
+<h1> Las tarifas son un poco altas </h1>
+
+```{r include=FALSE}
+tarifas <- as.data.frame(table(data$rango))
+names(tarifas)[names(tarifas) == "Var1"] <- "dias_de_credito"
+tarifas$ratio <- tarifas$Freq/sum(tarifas$Freq)
+tarifas <- tarifas[order(-tarifas$ratio),]
+
+
+```
+
+```{r}
+DT::datatable(tarifas)
+```
+
+
+<!-- # views -->
+
+<!-- ## -->
+
+<!-- ### -->
+
+<!-- ```{r} -->
+<!-- valueBox(mean(vidsData$viewCount),  -->
+<!--          caption = "Promedio de views", -->
+<!--          icon = "fa-eye") -->
+<!-- ``` -->
+
+
+<!-- ### -->
+
+<!-- ```{r} -->
+<!-- valueBox(max(vidsData$viewCount),  -->
+<!--          caption = "Maximo de views", -->
+<!--          icon = "fa-arrow-alt-circle-up", -->
+<!--          color = "success") -->
+<!-- ``` -->
+
+<!-- ### -->
+
+<!-- ```{r} -->
+<!-- valueBox(min(vidsData$viewCount),  -->
+<!--          caption = "Minimo de views", -->
+<!--          icon = "fa-arrow-alt-circle-down", -->
+<!--          color = "warning") -->
+<!-- ``` -->
+
+
+<!-- Row {data-height=350} -->
+<!-- ------------------------------------- -->
+
+
+<!-- ### Views a traves del tiempo  -->
+
+<!-- ```{r} -->
+<!-- options(scipen = 999) -->
+<!-- ggplot(data = vidsData, aes(x = date, y = viewCount))+ -->
+<!--   geom_line(color = "#00AFBB", size = 2) -->
+<!-- ``` -->
+
+
+<!-- ### Distribucion de las views  -->
+
+<!-- ```{r} -->
+<!-- vidsData %>%  -->
+<!--   ggplot(aes(x=viewCount)) + geom_density() -->
+<!-- ``` -->
+
+
+<!-- # likes -->
+
+<!-- ## -->
+
+<!-- ### -->
+
+<!-- ```{r} -->
+<!-- valueBox(mean(vidsData$likeCount), -->
+<!--          caption = "Promedio de likes", -->
+<!--          icon = "fa-thumbs-up") -->
+<!-- ``` -->
+
+<!-- ### -->
+
+<!-- ```{r} -->
+<!-- valueBox(max(vidsData$likeCount),  -->
+<!--          caption = "Maximo de likes", -->
+<!--          icon = "fa-arrow-alt-circle-up", -->
+<!--          color = "success") -->
+<!-- ``` -->
+
+<!-- ### -->
+
+<!-- ```{r} -->
+<!-- valueBox(min(vidsData$likeCount),  -->
+<!--          caption = "Minimo de likes", -->
+<!--          icon = "fa-arrow-alt-circle-down", -->
+<!--          color = "warning") -->
+<!-- ``` -->
+
+
+
+<!-- Row {data-height=350} -->
+<!-- ------------------------------------- -->
+
+
+
+<!-- ### Likes a traves del tiempo  -->
+<!-- ```{r} -->
+<!-- ggplot(data = vidsData, aes(x = date, y = likeCount))+ -->
+<!--   geom_line(color = "#00AFBB", size = 2) -->
+<!-- ``` -->
+
+<!-- ### Distribucion de las likes  -->
+
+
+<!-- ```{r} -->
+<!-- vidsData %>%  -->
+<!--   ggplot(aes(x=likeCount)) + geom_density() -->
+<!-- ``` -->
+
+
+
+
+
+
+
+
