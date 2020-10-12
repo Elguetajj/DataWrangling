@@ -449,7 +449,7 @@ postes <- postes[order(-postes$n),]
 
 media_postes <- mean(postes$n)
 
-postes<- postes[0:10000,]
+postes<- postes[0:1000,]
 
 postes$label <- with(postes, paste(
   "<p> <b>", "ID:",id, "</b> </br>",
@@ -466,10 +466,6 @@ data_share <- SharedData$new(postes)
 
 ```
 
-
-
-##
-### 
 ```{r}
 filter_slider("n", "servicios", data_share, step = 10, width = 480, column = ~n)
 ```
