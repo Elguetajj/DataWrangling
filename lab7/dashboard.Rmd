@@ -15,7 +15,12 @@ if(!require("readr")) install.packages("readr")
 if(!require("DT")) install.packages("DT")
 if(!require("humanize")) install.packages("humanize")
 if(!require("hrbrthemes")) install.packages("hrbrthemes")
+if(!require("leaflet")) install.packages("leaflet")
+if(!require("crosstalk")) install.packages("crosstalk")
 
+
+library(crosstalk)
+library(leaflet)
 library(flexdashboard)
 library(tidyverse)
 library(readr)
@@ -249,6 +254,249 @@ tarifas <- tarifas[order(-tarifas$ratio),]
 ```{r}
 DT::datatable(tarifas)
 ```
+
+
+##
+
+
+###
+
+
+```{r include=FALSE}
+
+tarifas_grafica<-tarifas %>%
+  mutate(name = fct_reorder(dias_de_credito, Freq)) %>%
+  ggplot( aes(x=dias_de_credito, y=Freq)) +
+    geom_bar(stat="identity", fill="#f68060", alpha=.6, width=.4) +
+    coord_flip() +
+    xlab("") +
+    theme_bw()
+    labs(fill="")
+    
+```
+ 
+ 
+ 
+```{r}   
+    
+tarifas_grafica
+```
+
+
+
+
+# Margenes
+
+
+##
+
+
+###
+
+
+```{r}
+
+
+detalle <- detalle[order(-detalle$porcentaje_profits),]
+
+
+DT::datatable(detalle[,7:10])
+
+```
+
+
+
+##
+
+
+###
+
+
+```{r include=FALSE}
+
+margen <-detalle %>%
+  mutate(name = fct_reorder(cod, porcentaje_profits)) %>%
+  ggplot( aes(x=cod, y=porcentaje_profits)) +
+    geom_bar(stat="identity", fill="#f68060", alpha=.6, width=.4) +
+    coord_flip() +
+    xlab("") +
+    theme_bw()
+    labs(fill="")
+    
+```
+
+
+```{r}
+
+margen
+
+```
+
+
+
+
+
+
+
+###
+
+
+
+```{r include=FALSE}
+
+margen_promedio<-detalle %>%
+  mutate(name = fct_reorder(cod, margen_promedio)) %>%
+  ggplot( aes(x=cod, y=margen_promedio)) +
+    geom_bar(stat="identity", fill="#f68060", alpha=.6, width=.4) +
+    coord_flip() +
+    xlab("") +
+    theme_bw()
+    labs(fill="")
+    
+```
+
+
+```{r}
+
+margen_promedio
+
+```
+
+
+
+
+# Centros
+
+
+##
+
+```{r include=FALSE}
+centros <- data %>% 
+  group_by(origen) %>% 
+  summarise(n = length(unique(id)),
+            profit = (sum(factura)-sum(costo_total))/revenue,
+            costos = sum(costo_total),
+            ventas = sum(factura)
+            )
+```
+
+
+
+###
+```{r}
+DT::datatable(centros)
+```
+
+
+
+# 80/20
+
+##
+
+
+###
+
+```{r}
+
+pareto <- arrange(detalle, desc(porcentaje_profits)) %>% 
+  mutate(
+    cumsum = cumsum(porcentaje_profits),
+    freq = round(porcentaje_profits/sum(porcentaje_profits),3),
+    cum_freq = cumsum(freq) 
+  )
+
+par(mar = c(10,4,4,2) + 0.1)
+
+pc = barplot(pareto$porcentaje_profits,  
+            space = 0.4, border = NA, axes = F,
+             ylim = c(0, 1.05 * max(pareto$cumsum, na.rm = T)), 
+             las = 2 , cex.names = 0.7, 
+             names.arg = pareto$cod,
+             main = "Pareto ")
+
+
+lines(pc, pareto$cumsum, type = "b", cex = 0.7, pch = 19, col="cyan4")
+
+## Framing plot
+box(col = "grey62")
+
+## adding axes
+axis(side = 2, at = c(0, round(pareto$cumsum,2)), las = 1, col.axis = "grey62", col = "grey62", cex.axis = 0.8)
+axis(side = 4, at = c(0, pareto$cumsum), labels = paste(c(0, round(pareto$cum_freq * 100)) ,"%",sep=""), 
+     las = 1, col.axis = "cyan4", col = "cyan4", cex.axis = 0.8)
+
+
+
+```
+
+
+
+# Postes
+
+##
+
+
+###
+
+
+```{r include=FALSE}
+
+postes <- data %>% 
+  group_by(id,lat,long,height) %>% 
+  summarise(n = n())
+
+postes <- postes[order(-postes$n),]
+
+media_postes <- mean(postes$n)
+
+postes<- postes[0:10000,]
+
+postes$label <- with(postes, paste(
+  "<p> <b>", "ID:",id, "</b> </br>",
+  "Altura:",height, "</br>",
+  "servicios:", n,
+  "</p>"))
+```
+
+
+
+
+```{r}
+data_share <- SharedData$new(postes)
+
+```
+
+
+
+##
+### 
+```{r}
+filter_slider("n", "servicios", data_share, step = 10, width = 480, column = ~n)
+```
+
+```{r}
+data_share %>% 
+  DT::datatable()
+```
+
+###
+
+
+```{r}
+data_share %>%
+  leaflet() %>% 
+  addTiles() %>% 
+  addMarkers(lng = ~long,
+             lat = ~lat,
+             popup = ~label
+             )
+
+```
+
+
+
+
+
 
 
 <!-- # views -->

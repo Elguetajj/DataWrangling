@@ -77,7 +77,11 @@ tarifas <- tarifas[order(-tarifas$ratio),]
 # mas centros?
 centros <- data %>% 
   group_by(origen) %>% 
-  summarise(n = length(unique(id)))
+  summarise(n = length(unique(id)),
+            profit = (sum(factura)-sum(costo_total))/revenue,
+            costos = sum(costo_total),
+            ventas = sum(factura)
+            )
 
 # postes
 postes <- data %>% 
@@ -85,6 +89,7 @@ postes <- data %>%
   summarise(n = n())
 
 postes <- postes[order(-postes$n),]
+
 
 
 
